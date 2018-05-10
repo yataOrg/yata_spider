@@ -111,7 +111,7 @@ class EleSpider(scrapy.Spider):
                 item['opening_hours1'], item['opening_hours2'], item['opening_hours3'] = v['opening_hours']
 
             if 1 == len(v['phone'].split(" ")):
-                item['phone1'] = v['phone'].split(" ")
+                item['phone1'] = v['phone'].split(" ")[0]
                 item['phone2'] = ''
             elif 2 == len(v['phone'].split(" ")):
                 item['phone1'], item['phone2'] = v['phone'].split(" ", 1)
