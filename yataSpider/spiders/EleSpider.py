@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import scrapy, json
+import scrapy, json, math
 from scrapy.http import Request, FormRequest, HtmlResponse
+from decimal import *
 from yataSpider.items import YataspiderItem
+
 
 class EleSpider(scrapy.Spider):
 
+    math_distance = []
     use_lat_lon = []
     name = "EleSpider"
     allowed_domains = ["ele.me"]
@@ -32,19 +35,91 @@ class EleSpider(scrapy.Spider):
         "x-shard": "loc=121.529169,31.221809"
     }
 
+    # 登录头
+    login_headers = {
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'zh-CN,zh;q=0.9',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Content-Length': '86',
+        'content-type': 'application/json; charset=utf-8',
+        'Host': 'h5.ele.me',
+        'Origin': 'https://h5.ele.me',
+        'Pragma': 'no-cache',
+        'Referer': 'https://h5.ele.me/login/',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36'
+    }
+
+
+    earth_radius = 6371  # 地球近似半径
+
+    def hav(self, theta):
+        s = math.sin(theta / 2)
+        return s * s
+
+    def get_distance_hav(self, jwd):
+
+        # 经纬度转换成弧度
+        lat0, lng0 = jwd[0]
+        lat1, lng1 = jwd[1]
+        lat0 = float(lat0)
+        lng0 = float(lng0)
+        lat1 = float(lat1)
+        lng1 = float(lng1)
+
+        lat0 = math.radians(lat0)
+        lat1 = math.radians(lat1)
+        lng0 = math.radians(lng0)
+        lng1 = math.radians(lng1)
+
+        dlng = math.fabs(lng0 - lng1)
+        dlat = math.fabs(lat0 - lat1)
+        h = self.hav(dlat) + math.cos(lat0) * math.cos(lat1) * self.hav(dlng)
+        distance = 2 * self.earth_radius * math.asin(math.sqrt(h))
+
+        distance_km = Decimal(str(distance)).quantize(Decimal('0.000'))
+        return distance_km
+
+
+
     def start_requests(self):
         return [
-            FormRequest("https://www.ele.me/home/", headers = self.address_header,meta={'cookiejar': 1},callback=self.address_get_geo)
+            FormRequest("https://www.ele.me/home/", headers=self.address_header, meta={'cookiejar': 1},
+                        callback=self.login_in)
         ]
 
+    def login_in(self, response):
+        print("###login" * 10)
+        post_data = json.dumps({
+            'captcha_hash': "",
+            'captcha_value': "",
+            'password': "5201314qq",
+            'username': '18521568316',
+        })
+        return [
+            Request("https://h5.ele.me/restapi/eus/login/login_by_password",
+                    method='POST',
+                    body=post_data,
+                    # meta={'cookiejar': 1},
+                    # meta={'cookiejar': response.meta['cookiejar']},
+                    headers=self.login_headers,
+                    callback=self.address_get_geo
+                    )
+        ]
+
+
     def address_get_geo(self, response):
-        print('aaaaaaaaaaaaaaaaaaaaaaaa')
+        print('aaaaaaaaaaaaaaaaaaaaaaaa'*10)
+
+        print(response.text)
+        return
         self.address_header['referer'] = "https://www.ele.me/home/"
         return [
-            FormRequest(url = "https://www.ele.me/restapi/v2/pois",
-                        method = 'GET',
-                        meta = {'cookiejar': response.meta['cookiejar']},
-                        formdata = {
+            FormRequest(url="https://www.ele.me/restapi/v2/pois",
+                        method='GET',
+                        meta={'cookiejar': response.meta['cookiejar']},
+                        formdata={
                             'extras[]': 'count',
                             'geohash': 'wtw3sjq6n6um',
                             'keyword': u'一百杉杉大厦',
@@ -52,10 +127,9 @@ class EleSpider(scrapy.Spider):
                             'type': 'nearby'
                         },
                         # cookies = self.geo_cookie,
-                        headers = self.address_header,
-                        callback = self.get_lat_lon)
+                        headers=self.address_header,
+                        callback=self.get_lat_lon)
         ]
-
 
     def get_lat_lon(self, response):
 
@@ -66,8 +140,11 @@ class EleSpider(scrapy.Spider):
             self.use_lat_lon.append(str(data[0]['latitude']))
             self.use_lat_lon.append(str(data[0]['longitude']))
         print(self.use_lat_lon)
-        return [
-            FormRequest(
+
+        page_list = [0, 24, 48, 72, 96]
+
+        for page in page_list:
+            yield FormRequest(
                 url="https://www.ele.me/restapi/shopping/restaurants",
                 method="GET",
                 meta={'cookiejar': response.meta['cookiejar']},
@@ -75,16 +152,33 @@ class EleSpider(scrapy.Spider):
                     'extras[]': 'activities',
                     'geohash': 'wtw3sjq6n6um',
                     'latitude': self.use_lat_lon[0],
-                    'limit': '48',
+                    'limit': '24',
                     'longitude': self.use_lat_lon[1],
-                    'offset': '0',
+                    'offset': str(page),
                     'terminal': 'web'
                 },
                 headers=self.bang_headers,
                 callback=self.export_data
             )
-        ]
 
+        # return [
+        #     FormRequest(
+        #         url="https://www.ele.me/restapi/shopping/restaurants",
+        #         method="GET",
+        #         meta={'cookiejar': response.meta['cookiejar']},
+        #         formdata={
+        #             'extras[]': 'activities',
+        #             'geohash': 'wtw3sjq6n6um',
+        #             'latitude': self.use_lat_lon[0],
+        #             'limit': '24',
+        #             'longitude': self.use_lat_lon[1],
+        #             'offset': '0',
+        #             'terminal': 'web'
+        #         },
+        #         headers=self.bang_headers,
+        #         callback=self.export_data
+        #     )
+        # ]
 
     def export_data(self, response):
         print("export data" * 20)
@@ -94,11 +188,18 @@ class EleSpider(scrapy.Spider):
             item = YataspiderItem()
             print('@@@@@@@@' * 20)
             item['address'] = v['address']
-            item['float_delivery_fee'] = v['float_delivery_fee'] # 配送费
-            item['float_minimum_order_amount'] = v['float_minimum_order_amount'] # 最低起送
-            item['cuisine'] = v['flavors'][0]['name'] # 菜系
-            item['latitude'] = v['latitude'] # 纬度
-            item['longitude'] = v['longitude'] # 经度
+            item['float_delivery_fee'] = v['float_delivery_fee']  # 配送费
+            item['float_minimum_order_amount'] = v['float_minimum_order_amount']  # 最低起送
+            item['cuisine'] = v['flavors'][0]['name']  # 菜系
+            item['latitude'] = v['latitude']  # 纬度
+            item['longitude'] = v['longitude']  # 经度
+
+            self.math_distance = []
+            self.math_distance.append(self.use_lat_lon)
+            self.math_distance.append([v['latitude'], v['longitude']])
+            # 计算距离
+            item['distance'] = self.get_distance_hav(self.math_distance)
+
             item['name'] = v['name']
             if 1 == len(v['opening_hours']):
                 item['opening_hours1'] = v['opening_hours'][0]
@@ -115,21 +216,22 @@ class EleSpider(scrapy.Spider):
                 item['phone2'] = ''
             elif 2 == len(v['phone'].split(" ")):
                 item['phone1'], item['phone2'] = v['phone'].split(" ", 1)
+            else:
+                item['phone1'] = ''
+                item['phone2'] = ''
 
-            item['rating'] = v['rating'] # 综合评价
-            item['order_lead_time'] = v['order_lead_time'] # 平均送达速度
+            item['rating'] = v['rating']  # 综合评价
+            item['order_lead_time'] = v['order_lead_time']  # 平均送达速度
             item['recommend_reasons'] = ''
             if 'recommend_reasons' in v.keys():
                 for ii in v['recommend_reasons']:
                     item['recommend_reasons'] = item['recommend_reasons'] + ii['name'] + '|'
             yield item
 
-
     def parse(self, response):
         print('abc')
         return
         pass
-
 
 ### 运行指令
 # scrapy crawl EleSpider -o item.json

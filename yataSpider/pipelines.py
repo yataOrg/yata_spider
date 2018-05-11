@@ -15,7 +15,7 @@ class YataspiderPipeline(object):
             host = 'localhost',
             db = 'yata_data_01',
             user = 'root',
-            passwd = '',
+            passwd = '123456',
             charset = 'utf8',
             cursorclass = pymysql.cursors.DictCursor,
             use_unicode = True
