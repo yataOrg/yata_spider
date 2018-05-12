@@ -20,7 +20,7 @@ SET FOREIGN_KEY_CHECKS=0;
 -- ----------------------------
 DROP TABLE IF EXISTS `elm_new`;
 CREATE TABLE `elm_new` (
-  `id` int(12) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(15) unsigned NOT NULL AUTO_INCREMENT,
   `address` varchar(255) DEFAULT NULL,
   `float_delivery_fee` float(5,2) DEFAULT NULL COMMENT '配送费',
   `float_minimum_order_amount` float(6,1) DEFAULT NULL COMMENT '最低起送',
@@ -36,9 +36,18 @@ CREATE TABLE `elm_new` (
   `rating` float(3,1) DEFAULT NULL COMMENT '综合评价',
   `order_lead_time` varchar(10) DEFAULT NULL COMMENT '平均送达速度',
   `recommend_reasons` varchar(255) DEFAULT NULL COMMENT '推荐理由',
+  `distance` float(15,3) unsigned DEFAULT NULL COMMENT '距离',
+  `ele_distance` float(15,3) unsigned DEFAULT NULL COMMENT '饿了么的距离',
+  `ele_id` int(15) unsigned NOT NULL COMMENT '饿了么的店铺id',
+  `ele_authentic_id` int(15) unsigned NOT NULL COMMENT '饿了么可信的id',
+  `search_jwd` varchar(255) DEFAULT NULL COMMENT '搜索的经纬度',
   `created_at` datetime NOT NULL COMMENT '创建时间',
   `updated_at` datetime NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `latitude` (`latitude`),
-  KEY `longitude` (`longitude`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4;
+  KEY `longitude` (`longitude`),
+  KEY `ele_id` (`ele_id`),
+  KEY `ele_authentic_id` (`ele_authentic_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+

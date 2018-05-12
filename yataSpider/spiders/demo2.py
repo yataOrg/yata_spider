@@ -1,40 +1,33 @@
 #!/usr/bin/python3  
 # -*- coding: utf-8 -*-
 
-from math import sin, asin, cos, radians, fabs, sqrt
+import requests
 
-EARTH_RADIUS = 6371  # 地球平均半径，6371km
+s = requests.session()
+s.verify = True
+login_headers = {
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'zh-CN,zh;q=0.9',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Content-Length': '86',
+        'content-type': 'application/json; charset=utf-8',
+        'Host': 'h5.ele.me',
+        'Origin': 'https://h5.ele.me',
+        'Pragma': 'no-cache',
+        'Referer': 'https://h5.ele.me/login/',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36'
+    }
 
+login_url = "https://h5.ele.me/restapi/eus/login/login_by_password"
 
-def hav(theta):
-    s = sin(theta / 2)
-    return s * s
+data = {
+        'captcha_hash': "",
+        'captcha_value': "",
+        'password': "5201314qq",
+        'username': '18521568316',
+}
 
-
-def get_distance_hav(lat0, lng0, lat1, lng1):
-    "用haversine公式计算球面两点间的距离。"
-    # 经纬度转换成弧度  
-    lat0 = radians(lat0)
-    lat1 = radians(lat1)
-    lng0 = radians(lng0)
-    lng1 = radians(lng1)
-
-    dlng = fabs(lng0 - lng1)
-    dlat = fabs(lat0 - lat1)
-    h = hav(dlat) + cos(lat0) * cos(lat1) * hav(dlng)
-    distance = 2 * EARTH_RADIUS * asin(sqrt(h))
-
-    return distance
-
-
-lon1, lat1 = (22.599578, 113.973129)  # 深圳野生动物园(起点）
-lon2, lat2 = (22.6986848, 114.3311032)  # 深圳坪山站 (百度地图测距：38.3km)
-d2 = get_distance_hav(lon1, lat1, lon2, lat2)
-print(d2)
-
-lon2, lat2 = (39.9087202, 116.3974799)  # 北京天安门(1938.4KM)
-d2 = get_distance_hav(lon1, lat1, lon2, lat2)
-print(d2)
-
-lon2, lat2 = (34.0522342, -118.2436849)  # 洛杉矶(11625.7KM)
-d2 = get_distance_hav(lon1, lat1, lon2, lat2)
+result = s.post(login_url, json=data, headers=login_headers)
+print(result.text)

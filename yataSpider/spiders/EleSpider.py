@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import scrapy, json, math
-from scrapy.http import Request, FormRequest, HtmlResponse
+from scrapy.http import FormRequest, HtmlResponse
+from scrapy import Request
 from decimal import *
 from yataSpider.items import YataspiderItem
 
@@ -14,6 +15,8 @@ class EleSpider(scrapy.Spider):
     name = "EleSpider"
     allowed_domains = ["ele.me"]
     start_urls = ["https://www.ele.me/restapi/v2/pois"]
+
+    list_all_gps = []
 
     address_header = {
         ":authority": "www.ele.me",
@@ -32,7 +35,7 @@ class EleSpider(scrapy.Spider):
         "Accept": "application/json, text/plain, */*",
         "Referer": "https://www.ele.me/place/wtw3t7yb4zh3?latitude=31.221809&longitude=121.529169",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36",
-        "x-shard": "loc=121.529169,31.221809"
+        "x-shard": "loc=121.596282,31.268485"
     }
 
     # 登录头
@@ -86,7 +89,7 @@ class EleSpider(scrapy.Spider):
     def start_requests(self):
         return [
             FormRequest("https://www.ele.me/home/", headers=self.address_header, meta={'cookiejar': 1},
-                        callback=self.login_in)
+                        callback=self.address_get_geo)
         ]
 
     def login_in(self, response):
@@ -96,15 +99,15 @@ class EleSpider(scrapy.Spider):
             'captcha_value': "",
             'password': "5201314qq",
             'username': '18521568316',
-        })
+        }, ensure_ascii=False)
         return [
             Request("https://h5.ele.me/restapi/eus/login/login_by_password",
                     method='POST',
-                    body=post_data,
-                    # meta={'cookiejar': 1},
+                    body="{'captcha_hash': '', 'captcha_value': '', 'password': '5201314qq','username': '18521568316'}",
+                    meta={'cookiejar': 1},
                     # meta={'cookiejar': response.meta['cookiejar']},
                     headers=self.login_headers,
-                    callback=self.address_get_geo
+                    callback=self.get_lat_lon
                     )
         ]
 
@@ -112,8 +115,6 @@ class EleSpider(scrapy.Spider):
     def address_get_geo(self, response):
         print('aaaaaaaaaaaaaaaaaaaaaaaa'*10)
 
-        print(response.text)
-        return
         self.address_header['referer'] = "https://www.ele.me/home/"
         return [
             FormRequest(url="https://www.ele.me/restapi/v2/pois",
@@ -122,7 +123,7 @@ class EleSpider(scrapy.Spider):
                         formdata={
                             'extras[]': 'count',
                             'geohash': 'wtw3sjq6n6um',
-                            'keyword': u'一百杉杉大厦',
+                            'keyword': u'东二小区',
                             'limit': '20',
                             'type': 'nearby'
                         },
@@ -141,25 +142,74 @@ class EleSpider(scrapy.Spider):
             self.use_lat_lon.append(str(data[0]['longitude']))
         print(self.use_lat_lon)
 
-        page_list = [0, 24, 48, 72, 96]
 
-        for page in page_list:
-            yield FormRequest(
-                url="https://www.ele.me/restapi/shopping/restaurants",
-                method="GET",
-                meta={'cookiejar': response.meta['cookiejar']},
-                formdata={
-                    'extras[]': 'activities',
-                    'geohash': 'wtw3sjq6n6um',
-                    'latitude': self.use_lat_lon[0],
-                    'limit': '24',
-                    'longitude': self.use_lat_lon[1],
-                    'offset': str(page),
-                    'terminal': 'web'
-                },
-                headers=self.bang_headers,
-                callback=self.export_data
-            )
+
+
+        # 生成经纬度
+        start_lon = float(121.17625)  #经度
+        # self.list_all_gps = []
+        while start_lon <= 122.015627:
+            start_lat = float(30.736015)  # 纬度
+            while start_lat <= 31.39919:
+                self.list_all_gps.append([start_lon, start_lat])
+
+                start_lat += float(Decimal(str(6 / 111)).quantize(Decimal('0.0000000')))
+                start_lat = float(Decimal(start_lat).quantize(Decimal('0.0000000')))
+                # Decimal(str(distance)).quantize(Decimal('0.000'))
+                # start_lon += 6 / (111 * math.cos(start_lat))
+
+
+            start_lon += float(Decimal(str(6 / (111 * math.cos(30.736015)))).quantize(Decimal('0.0000000')))
+            start_lon = float(Decimal(start_lon).quantize(Decimal('0.0000000')))
+
+        # 第二层添加 圆圈之间的间隙
+        start_lon = 121.17625 + float(Decimal(str(3 / (111 * math.cos(30.736015)))).quantize(Decimal('0.0000000')))
+        start_lon1 = float(Decimal(start_lon).quantize(Decimal('0.0000000')))
+        start_lat = 30.736015 + float(Decimal(str(3 / 111)).quantize(Decimal('0.0000000')))
+        start_lat = float(Decimal(start_lat).quantize(Decimal('0.0000000')))
+
+        while start_lon1 <= 122.015627:
+            start_lat1 = float(start_lat)  # 纬度
+            while start_lat1 <= 31.39919:
+                self.list_all_gps.append([start_lon1, start_lat1])
+
+                start_lat1 += float(Decimal(str(6 / 111)).quantize(Decimal('0.0000000')))
+                start_lat1 = float(Decimal(start_lat1).quantize(Decimal('0.0000000')))
+                # Decimal(str(distance)).quantize(Decimal('0.000'))
+                # start_lon += 6 / (111 * math.cos(start_lat))
+
+
+            start_lon1 += float(Decimal(str(6 / (111 * math.cos(30.736015)))).quantize(Decimal('0.0000000')))
+            start_lon1 = float(Decimal(start_lon1).quantize(Decimal('0.0000000')))
+
+        print('#####################################################'*2)
+        print(len(self.list_all_gps))
+        # return
+        # 进行循环遍历
+        for jwd in self.list_all_gps:
+
+            page_list = [0, 24]
+            for page in page_list:
+                yield FormRequest(
+                    url="https://www.ele.me/restapi/shopping/restaurants",
+                    method="GET",
+                    meta={'cookiejar': response.meta['cookiejar'], 'jwd': str(jwd[0]) + ", " + str(jwd[1])},
+                    formdata={
+                        'extras[]': 'activities',
+                        'geohash': 'wtw3sjq6n6um',
+                        'latitude': str(jwd[1]),
+                        'limit': '24',
+                        'longitude': str(jwd[0]),
+                        'offset': str(page),
+                        'terminal': 'web'
+                    },
+                    headers=self.bang_headers,
+                    callback=self.export_data
+                )
+
+
+
+
 
         # return [
         #     FormRequest(
@@ -226,6 +276,11 @@ class EleSpider(scrapy.Spider):
             if 'recommend_reasons' in v.keys():
                 for ii in v['recommend_reasons']:
                     item['recommend_reasons'] = item['recommend_reasons'] + ii['name'] + '|'
+
+            item['ele_distance'] = v['distance']
+            item['ele_id'] = v['id']
+            item['ele_authentic_id'] = v['authentic_id']
+            item['search_jwd'] = response.meta['jwd']
             yield item
 
     def parse(self, response):

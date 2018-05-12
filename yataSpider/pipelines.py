@@ -15,7 +15,7 @@ class YataspiderPipeline(object):
             host = 'localhost',
             db = 'yata_data_01',
             user = 'root',
-            passwd = '123456',
+            passwd = '',
             charset = 'utf8',
             cursorclass = pymysql.cursors.DictCursor,
             use_unicode = True
@@ -35,4 +35,5 @@ class YataspiderPipeline(object):
     def do_insert(self, cursor, item):
         insert_sql, params = item.get_insert_sql()
         print("#####"*10)
+        # print(insert_sql % params)
         cursor.execute(insert_sql % params)
