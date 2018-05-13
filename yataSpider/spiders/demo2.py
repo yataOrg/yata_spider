@@ -25,8 +25,8 @@ login_url = "https://h5.ele.me/restapi/eus/login/login_by_password"
 data = {
         'captcha_hash': "",
         'captcha_value': "",
-        'password': "5201314qq",
-        'username': '18521568316',
+        'password': "",
+        'username': '',
 }
 
 result = s.post(login_url, json=data, headers=login_headers)
