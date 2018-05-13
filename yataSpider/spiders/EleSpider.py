@@ -136,21 +136,21 @@ class EleSpider(scrapy.Spider):
 
         print('sssssssssssssss')
         # data = json.loads(response.body_as_unicode())
-        data = json.loads(response.body)
-        if data is not None:
-            self.use_lat_lon.append(str(data[0]['latitude']))
-            self.use_lat_lon.append(str(data[0]['longitude']))
-        print(self.use_lat_lon)
+        # data = json.loads(response.body)
+        # if data is not None:
+        #     self.use_lat_lon.append(str(data[0]['latitude']))
+        #     self.use_lat_lon.append(str(data[0]['longitude']))
+        # print(self.use_lat_lon)
 
 
 
 
         # 生成经纬度
-        start_lon = float(121.17625)  #经度
+        start_lon = float(121.035827)  #经度
         # self.list_all_gps = []
-        while start_lon <= 122.015627:
-            start_lat = float(30.736015)  # 纬度
-            while start_lat <= 31.39919:
+        while start_lon <= 122.121268:
+            start_lat = float(30.717389)  # 纬度
+            while start_lat <= 31.469439:
                 self.list_all_gps.append([start_lon, start_lat])
 
                 start_lat += float(Decimal(str(6 / 111)).quantize(Decimal('0.0000000')))
@@ -159,18 +159,20 @@ class EleSpider(scrapy.Spider):
                 # start_lon += 6 / (111 * math.cos(start_lat))
 
 
-            start_lon += float(Decimal(str(6 / (111 * math.cos(30.736015)))).quantize(Decimal('0.0000000')))
+            start_lon += float(Decimal(str(6 / (111 * math.cos(30.717389)))).quantize(Decimal('0.0000000')))
             start_lon = float(Decimal(start_lon).quantize(Decimal('0.0000000')))
 
+        # print('#####################################################' * 2)
+        # print(len(self.list_all_gps))
         # 第二层添加 圆圈之间的间隙
-        start_lon = 121.17625 + float(Decimal(str(3 / (111 * math.cos(30.736015)))).quantize(Decimal('0.0000000')))
+        start_lon = 121.035827 + float(Decimal(str(3 / (111 * math.cos(30.717389)))).quantize(Decimal('0.0000000')))
         start_lon1 = float(Decimal(start_lon).quantize(Decimal('0.0000000')))
-        start_lat = 30.736015 + float(Decimal(str(3 / 111)).quantize(Decimal('0.0000000')))
+        start_lat = 30.717389 + float(Decimal(str(3 / 111)).quantize(Decimal('0.0000000')))
         start_lat = float(Decimal(start_lat).quantize(Decimal('0.0000000')))
 
-        while start_lon1 <= 122.015627:
+        while start_lon1 <= 122.121268:
             start_lat1 = float(start_lat)  # 纬度
-            while start_lat1 <= 31.39919:
+            while start_lat1 <= 31.469439:
                 self.list_all_gps.append([start_lon1, start_lat1])
 
                 start_lat1 += float(Decimal(str(6 / 111)).quantize(Decimal('0.0000000')))
@@ -179,17 +181,19 @@ class EleSpider(scrapy.Spider):
                 # start_lon += 6 / (111 * math.cos(start_lat))
 
 
-            start_lon1 += float(Decimal(str(6 / (111 * math.cos(30.736015)))).quantize(Decimal('0.0000000')))
+            start_lon1 += float(Decimal(str(6 / (111 * math.cos(start_lat)))).quantize(Decimal('0.0000000')))
             start_lon1 = float(Decimal(start_lon1).quantize(Decimal('0.0000000')))
 
-        print('#####################################################'*2)
-        print(len(self.list_all_gps))
+        # print('#####################################################'*2)
+        # print(len(self.list_all_gps))
         # return
         # 进行循环遍历
         for jwd in self.list_all_gps:
 
             page_list = [0, 24]
             for page in page_list:
+
+                self.bang_headers["x-shard"] = "loc=" + str(jwd[0]) + "," + str(jwd[1])
                 yield FormRequest(
                     url="https://www.ele.me/restapi/shopping/restaurants",
                     method="GET",
@@ -245,7 +249,8 @@ class EleSpider(scrapy.Spider):
             item['longitude'] = v['longitude']  # 经度
 
             self.math_distance = []
-            self.math_distance.append(self.use_lat_lon)
+            tem_use_lat_lon = response.meta['jwd'].split(", ", 1)
+            self.math_distance.append([tem_use_lat_lon[1], tem_use_lat_lon[0]])
             self.math_distance.append([v['latitude'], v['longitude']])
             # 计算距离
             item['distance'] = self.get_distance_hav(self.math_distance)
