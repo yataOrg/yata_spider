@@ -32,10 +32,22 @@ class EleSpider(scrapy.Spider):
     }
 
     bang_headers = {
-        "Accept": "application/json, text/plain, */*",
-        "Referer": "https://www.ele.me/place/wtw3t7yb4zh3?latitude=31.221809&longitude=121.529169",
+        "accept": "application/json, text/plain, */*",
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'zh-CN,zh;q=0.9',
+        'cache-control': 'no-cache',
+        'pragma': 'no-cache',
+        "referer": "https://www.ele.me/place/wtw3t7yb4zh3?latitude=31.221809&longitude=121.529169",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36",
         "x-shard": "loc=121.596282,31.268485"
+    }
+
+    bang_cookies = {
+        'ubt_ssid': 'qc6hy19lrtojld9veblqwbn55qqaotwo_2018-05-10',
+        '_utrace': '40056258e5b7c860e863076b79003b5d_2018-05-10',
+        'track_id': '1526176363|6cef10329124518b692c68a5af7ed041ba3946df3bb9483421|e32801ba6f611e0ac047998523f356fb',
+        'USERID': '28546361',
+        'SID': 'm0AW6iU1U0ErIhlMJ6xalsVs0w3w0s4yQaaA'
     }
 
     # 登录头
@@ -190,14 +202,15 @@ class EleSpider(scrapy.Spider):
         # 进行循环遍历
         for jwd in self.list_all_gps:
 
-            page_list = [0, 24]
+            page_list = [0, 24, 48, 72, 96, 120, 144, 168, 192]
             for page in page_list:
 
                 self.bang_headers["x-shard"] = "loc=" + str(jwd[0]) + "," + str(jwd[1])
+                self.bang_headers["referer"] = "https://www.ele.me/place/wtw3t7yb4zh3?latitude=" + str(jwd[1]) + "&longitude=" + str(jwd[0])
                 yield FormRequest(
                     url="https://www.ele.me/restapi/shopping/restaurants",
                     method="GET",
-                    meta={'cookiejar': response.meta['cookiejar'], 'jwd': str(jwd[0]) + ", " + str(jwd[1])},
+                    meta={'jwd': str(jwd[0]) + ", " + str(jwd[1])},
                     formdata={
                         'extras[]': 'activities',
                         'geohash': 'wtw3sjq6n6um',
@@ -207,11 +220,10 @@ class EleSpider(scrapy.Spider):
                         'offset': str(page),
                         'terminal': 'web'
                     },
+                    cookies=self.bang_cookies,
                     headers=self.bang_headers,
                     callback=self.export_data
                 )
-
-
 
 
 
@@ -284,7 +296,11 @@ class EleSpider(scrapy.Spider):
 
             item['ele_distance'] = v['distance']
             item['ele_id'] = v['id']
-            item['ele_authentic_id'] = v['authentic_id']
+            if 'authentic_id' in v.keys():
+                item['ele_authentic_id'] = v['authentic_id']
+            else:
+                item['ele_authentic_id'] = ''
+
             item['search_jwd'] = response.meta['jwd']
             yield item
 
