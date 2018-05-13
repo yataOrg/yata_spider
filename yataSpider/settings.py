@@ -21,7 +21,7 @@ NEWSPIDER_MODULE = 'yataSpider.spiders'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
-HTTPERROR_ALLOWED_CODES = [400, 443]
+HTTPERROR_ALLOWED_CODES = [400, 401, 404, 443]
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
 
