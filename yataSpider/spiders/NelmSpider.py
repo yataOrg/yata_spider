@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import scrapy, json, math
+import scrapy, json, math, random
 from scrapy.http import FormRequest, HtmlResponse
 from scrapy import Request
 from decimal import *
@@ -13,38 +13,74 @@ class NelmSpider(scrapy.Spider):
     allowed_domains = ["ele.me"]
     start_urls = ["https://www.ele.me/home/"]
 
+    start_headers = {
+        ":authority": "www.ele.me",
+        ":method": "GET",
+        ":path": "/home/",
+        ":scheme": "https",
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "accept-encoding": "gzip, deflate, br",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "https://www.ele.me/place",
+        "upgrade-insecure-requests": '1',
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36",
+    }
+
+
     shop_headers = {
+        ":authority": "www.ele.me",
+        ":method": "GET",
+        ":path": "/restapi/shopping/restaurant/156427001?latitude=31.223809&longitude=121.549169&terminal=web",
+        ":scheme": "https",
         "accept": "application/json, text/plain, */*",
         "accept-encoding": "gzip, deflate, br",
         "accept-language": "zh-CN,zh;q=0.9",
         "cache-control": "no-cache",
         "pragma": "no-cache",
-        # "referer": "https://www.ele.me/shop/",
+        "referer": "https://www.ele.me/shop/56",
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36",
-        "x-shard": "shopid=56;loc=121.529169,31.221809",
+        "x-shard": "shopid=156427001;loc=121.549169,31.223809",
     }
 
     api_cookies = {
         "ubt_ssid": "qc6hy19lrtojld9veblqwbn55qqaotwo_2018-05-10",
         "_utrace": "40056258e5b7c860e863076b79003b5d_2018-05-10",
         "eleme__ele_me": "ff20a4ab936ba5aea3874dbd40f9645f%3Ada61055c4a57ed7537d4908e3cf7883546321650",
-        "track_id": "1526210865%7C0719f1212d7b1e16fdadc097368a2c561a6015c53e29b8e96e%7C9a30482d91471d0db409cdc37a34c026",
+        "track_id": "1526210865|0719f1212d7b1e16fdadc097368a2c561a6015c53e29b8e96e|9a30482d91471d0db409cdc37a34c026",
+        "USERID": "28546361",
+        "SID": "QrCBQQciftlRlfwZRj9axBEMgSvhrhrsby9g",
     }
 
     def start_requests(self):
+        return [
+            FormRequest("https://www.ele.me/home/", headers=self.start_headers, meta={'cookiejar': 1},
+                        callback=self.get_shop)
+        ]
+
+
+
+
+    def get_shop(self, response):
         print("start this spider!")
+        de_lat = 31.213809
+        de_lon = 121.529169
         for page in range(55, 1000000):
+            add_float_num = round(random.uniform(0.000009,0.009), 6)
             self.shop_headers['referer'] = "https://www.ele.me/shop/" +  str(page)
+            self.shop_headers[':path'] = "/restapi/shopping/restaurant/" + str(page) + "?latitude=" + str(de_lat + add_float_num) + "&longitude=" + str(de_lon + add_float_num) + "&terminal=web"
+            self.shop_headers['x-shard'] = "shopid=" + str(page) + ";loc=" +  str(de_lon + add_float_num) + "," + str(de_lat + add_float_num)
             yield FormRequest(
                 url="https://www.ele.me/restapi/shopping/restaurant/%s" % str(page),
                 method="GET",
-                meta={'page': page},
+                meta={'cookiejar': response.meta['cookiejar'], 'page': page},
                 formdata={
-                    'latitude': '31.221809',
-                    'longitude': '121.529169',
+                    'latitude': str(de_lat + add_float_num),
+                    'longitude': str(de_lon + add_float_num),
                     'terminal': 'web',
                 },
-                cookies=self.api_cookies,
+                # cookies=self.api_cookies,
                 headers=self.shop_headers,
                 callback=self.export_data
             )
@@ -53,6 +89,7 @@ class NelmSpider(scrapy.Spider):
 
         try:
             data = json.loads(response.body)
+            print(data)
             if data['name'] not in ["RESTAURANT_NOT_FOUND", "UNAUTHORIZED_RESTAURANT_ERROR"]:
                 page = response.meta['page']
                 print("export shop id is ================ %d" % page)
