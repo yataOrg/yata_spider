@@ -111,6 +111,8 @@ class ProxyMiddleWare(object):
         '''对request对象加上proxy'''
         proxy = self.get_random_proxy()
         print("this is request ip:" + proxy)
+        print('sssssssssssssssssssssssss'*10)
+        print(proxy)
         request.meta['proxy'] = proxy
 
 
