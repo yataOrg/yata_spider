@@ -5,8 +5,10 @@
 # See documentation in:
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
-from scrapy import signals
-
+import random
+import scrapy
+import time
+from scrapy import signals, log
 
 class YataspiderSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
@@ -101,3 +103,33 @@ class YataspiderDownloaderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+class ProxyMiddleWare(object):
+    '''docstring for ProxyMiddleWare'''
+    def process_request(self, request, spider):
+        '''对request对象加上proxy'''
+        proxy = self.get_random_proxy()
+        print("this is request ip:" + proxy)
+        print('sssssssssssssssssssssssss'*10)
+        print(proxy)
+        request.meta['proxy'] = proxy
+
+
+    def process_response(self, request, response, spider):
+        '''对返回的response处理'''
+        print("http.status_code is ", response.status)
+        return response
+
+
+    def get_random_proxy(self):
+        '''随机从文件中读取proxy'''
+        while 1:
+            with open("D:/python_code/yata/yata_spider/yataSpider/yataSpider/base/proxies.txt", 'r') as f:
+                proxies = f.readlines()
+            if proxies:
+                break
+            else:
+                time.sleep(1)
+        proxy = random.choice(proxies).strip()
+        return proxy

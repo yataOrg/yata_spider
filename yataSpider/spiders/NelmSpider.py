@@ -14,10 +14,10 @@ class NelmSpider(scrapy.Spider):
     start_urls = ["https://www.ele.me/home/"]
 
     start_headers = {
-        ":authority": "www.ele.me",
-        ":method": "GET",
-        ":path": "/home/",
-        ":scheme": "https",
+        # ":authority": "www.ele.me",
+        # ":method": "GET",
+        # ":path": "/home/",
+        # ":scheme": "https",
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
         "accept-encoding": "gzip, deflate, br",
         "accept-language": "zh-CN,zh;q=0.9",
@@ -30,10 +30,10 @@ class NelmSpider(scrapy.Spider):
 
 
     shop_headers = {
-        ":authority": "www.ele.me",
-        ":method": "GET",
-        ":path": "/restapi/shopping/restaurant/156427001?latitude=31.223809&longitude=121.549169&terminal=web",
-        ":scheme": "https",
+        # ":authority": "www.ele.me",
+        # ":method": "GET",
+        # ":path": "/restapi/shopping/restaurant/156427001?latitude=31.223809&longitude=121.549169&terminal=web",
+        # ":scheme": "https",
         "accept": "application/json, text/plain, */*",
         "accept-encoding": "gzip, deflate, br",
         "accept-language": "zh-CN,zh;q=0.9",
@@ -59,31 +59,31 @@ class NelmSpider(scrapy.Spider):
                         callback=self.get_shop)
         ]
 
-
-
-
     def get_shop(self, response):
         print("start this spider!")
         de_lat = 31.213809
         de_lon = 121.529169
-        for page in range(55, 1000000):
+        page = 55
+        while page <= 10000:
+
             add_float_num = round(random.uniform(0.000009,0.009), 6)
             self.shop_headers['referer'] = "https://www.ele.me/shop/" +  str(page)
-            self.shop_headers[':path'] = "/restapi/shopping/restaurant/" + str(page) + "?latitude=" + str(de_lat + add_float_num) + "&longitude=" + str(de_lon + add_float_num) + "&terminal=web"
-            self.shop_headers['x-shard'] = "shopid=" + str(page) + ";loc=" +  str(de_lon + add_float_num) + "," + str(de_lat + add_float_num)
+            # self.shop_headers[':path'] = "/restapi/shopping/restaurant/" + str(page) + "?latitude=" + str(round(de_lat + add_float_num, 6)) + "&longitude=" + str(round(de_lon + add_float_num, 6)) + "&terminal=web"
+            self.shop_headers['x-shard'] = "shopid=" + str(page) + ";loc=" +  str(round(de_lon + add_float_num, 6)) + "," + str(round(de_lat + add_float_num, 6))
             yield FormRequest(
                 url="https://www.ele.me/restapi/shopping/restaurant/%s" % str(page),
                 method="GET",
-                meta={'cookiejar': response.meta['cookiejar'], 'page': page},
+                meta={'cookiejar': response.meta['cookiejar'], 'page': page, 'download_timeout': 2},
                 formdata={
-                    'latitude': str(de_lat + add_float_num),
-                    'longitude': str(de_lon + add_float_num),
+                    'latitude': str(round(de_lat + add_float_num, 6)),
+                    'longitude': str(round(de_lon + add_float_num, 6)),
                     'terminal': 'web',
                 },
                 # cookies=self.api_cookies,
                 headers=self.shop_headers,
                 callback=self.export_data
             )
+            page += 1
 
     def export_data(self, response):
 
