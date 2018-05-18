@@ -24,7 +24,7 @@ class Proxies(object):
             'Accept-Encoding': 'gzip, deflate, sdch',
             'Accept-Language': 'zh-CN,zh;q=0.8'
         }
-        self.get_proxies()
+        # self.get_proxies()
         self.get_proxies_nn()
 
     def get_proxies(self):
@@ -53,6 +53,19 @@ class Proxies(object):
             for odd in ip_list.find_all(class_='odd'):
                 protocol = odd.find_all('td')[5].get_text().lower() + '://'
                 self.proxies.append(protocol + ':'.join([x.get_text() for x in odd.find_all('td')[1:3]]))
+            page += 1
+
+    def get_new_proxies(self):
+        page = 1
+        page_stop = 4
+        while page < page_stop:
+            url = 'http://www.xicidaili.com/nn/%d' % page
+            html = requests.get(url, headers = self.headers).content
+            soup = BeautifulSoup(html, 'lxml')
+            ip_list = soup.find(id='ip_list')
+            for tr in ip_list.find_all('tr'):
+                protocol = tr.find_all('td')[5].get_text().lower() + '://'
+                self.proxies.append(protocol + ':'.join([x.get_text() for x in tr.find_all('td')[1:3]]))
             page += 1
 
     def verify_proxies(self):
