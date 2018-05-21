@@ -11,7 +11,7 @@ from yataSpider.items import NelmItem
 class NelmSpider(scrapy.Spider):
     name = "NelmSpider"
     allowed_domains = ["ele.me"]
-    start_urls = ["https://www.ele.me/home/"]
+    # start_urls = ["https://www.ele.me/home/"]
 
     start_headers = {
         # ":authority": "www.ele.me",
@@ -63,8 +63,8 @@ class NelmSpider(scrapy.Spider):
         print("start this spider!")
         de_lat = 31.213809
         de_lon = 121.529169
-        page = 55
-        while page <= 10000:
+        page = 10000
+        while page >= 55:
 
             add_float_num = round(random.uniform(0.000009,0.009), 6)
             self.shop_headers['referer'] = "https://www.ele.me/shop/" +  str(page)
@@ -83,7 +83,7 @@ class NelmSpider(scrapy.Spider):
                 headers=self.shop_headers,
                 callback=self.export_data
             )
-            page += 1
+            page -= 1
 
     def export_data(self, response):
 

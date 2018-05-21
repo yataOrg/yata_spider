@@ -12,10 +12,10 @@ class YataspiderPipeline(object):
 
     def __init__(self):
         dbparms = dict(
-            host = 'localhost',
+            host = '140.143.32.44',
             db = 'yata_data_01',
             user = 'root',
-            passwd = '123456',
+            passwd = 'yata123',
             charset = 'utf8',
             cursorclass = pymysql.cursors.DictCursor,
             use_unicode = True

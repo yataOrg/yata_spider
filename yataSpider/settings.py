@@ -21,20 +21,20 @@ NEWSPIDER_MODULE = 'yataSpider.spiders'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
-HTTPERROR_ALLOWED_CODES = [400, 401, 404, 443]
+HTTPERROR_ALLOWED_CODES = [400, 401, 404, 443, 430]
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 1
+CONCURRENT_REQUESTS = 20
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 1.1
+DOWNLOAD_DELAY = 0.2
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-#COOKIES_ENABLED = False
+COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
@@ -55,7 +55,10 @@ DOWNLOAD_DELAY = 1.1
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
    #'yataSpider.middlewares.YataspiderDownloaderMiddleware': 543,
-   'yataSpider.middlewares.ProxyMiddleWare': 200,
+   'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': None,
+   'scrapy.downloadermiddlewares.retry.RetryMiddleware': None,
+   'scrapy.downloadermiddlewares.defaultheaders.DefaultHeadersMiddleware': None,
+   'yataSpider.middlewares.ProxyMiddleWare': 110,
    #'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware':None,
    #'scrapy.downloadermiddlewares.defaultheaders.DefaultHeadersMiddleware':None
 }
@@ -69,7 +72,7 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'yataSpider.pipelines.YataspiderPipeline': 300,
+   'yataSpider.pipelines.YataspiderPipeline': 749,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
