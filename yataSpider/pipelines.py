@@ -10,12 +10,13 @@ import pymysql
 from twisted.enterprise import adbapi
 class YataspiderPipeline(object):
 
+    # 140.143.32.44
     def __init__(self):
         dbparms = dict(
-            host = '140.143.32.44',
+            host = 'localhost',
             db = 'yata_data_01',
             user = 'root',
-            passwd = 'yata123',
+            passwd = '',
             charset = 'utf8',
             cursorclass = pymysql.cursors.DictCursor,
             use_unicode = True
