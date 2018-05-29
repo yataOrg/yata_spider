@@ -125,7 +125,8 @@ class ProxyMiddleWare(object):
     def get_random_proxy(self):
         '''随机从文件中读取proxy'''
         while 1:
-            with open("/usr/local/var/python_code/new_app/yata_spider/yataSpider/base/proxies.txt", 'r') as f:
+            # 'D:\python_code\yata\yata_spider\yataSpider\yataSpider\base'
+            with open("D:/python_code/yata/yata_spider/yataSpider/yataSpider/base/proxies.txt", 'r') as f:
                 proxies = f.readlines()
             if proxies:
                 break

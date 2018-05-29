@@ -34,7 +34,7 @@ DOWNLOAD_DELAY = 0.2
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED = False
+COOKIES_ENABLED = True
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
@@ -55,10 +55,10 @@ COOKIES_ENABLED = False
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
    #'yataSpider.middlewares.YataspiderDownloaderMiddleware': 543,
-   'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': None,
+   #'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': None,
    'scrapy.downloadermiddlewares.retry.RetryMiddleware': None,
    'scrapy.downloadermiddlewares.defaultheaders.DefaultHeadersMiddleware': None,
-   'yataSpider.middlewares.ProxyMiddleWare': 110,
+   #'yataSpider.middlewares.ProxyMiddleWare': 110,
    #'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware':None,
    #'scrapy.downloadermiddlewares.defaultheaders.DefaultHeadersMiddleware':None
 }
