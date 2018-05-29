@@ -50,7 +50,7 @@ class RestaurantSpider(scrapy.Spider):
 
     def get_restaurants(self, response):
         print("start spider!")
-        sql = "select distinct ele_id from elm_new order by ele_id asc limit 20000"
+        sql = "select distinct ele_id from elm_new order by ele_id asc limit 10000"
         self.cursor.execute(sql)
         data = self.cursor.fetchall()
         self.db.commit()
