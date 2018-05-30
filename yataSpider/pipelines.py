@@ -10,6 +10,7 @@ import pymysql
 from twisted.enterprise import adbapi
 class YataspiderPipeline(object):
 
+    # 140.143.32.44
     def __init__(self):
         dbparms = dict(
             host = '140.143.32.44',

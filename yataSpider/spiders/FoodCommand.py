@@ -5,13 +5,14 @@ import scrapy, json, math, random, pymysql
 from scrapy.http import FormRequest, HtmlResponse
 from scrapy import Request
 from decimal import *
-from yataSpider.items import RestaurantItem
+from yataSpider.items import FoodCommentItem
 
 
-class RestaurantSpider(scrapy.Spider):
-    name = 'Restaurant'
+class FoodCommentSpider(scrapy.Spider):
+    name = 'FoodComment'
     allowed_domains = ['ele.me']
-    food_url = 'https://www.ele.me/restapi/shopping/v2/menu?restaurant_id=%s&terminal=web'
+
+    food_comment_url = 'https://www.ele.me/restapi/ugc/v1/restaurant/%d/ratings?limit=100&offset=0&record_type=1'
     db = None
     cursor = None
     start_headers = {
@@ -40,17 +41,12 @@ class RestaurantSpider(scrapy.Spider):
     def start_requests(self):
         return [
             FormRequest("https://www.ele.me/home/", headers=self.start_headers, meta={'cookiejar': 1},
-                        callback=self.get_restaurants)
+                        callback=self.get_food_comment)
         ]
 
-    def get_foods(self, response):
-        print("start this spider!")
-        self.get_restaurants()
-
-
-    def get_restaurants(self, response):
+    def get_food_comment(self, response):
         print("start spider!")
-        sql = "select distinct ele_id from elm_new order by ele_id asc limit 2000"
+        sql = "select distinct ele_id from elm_new order by ele_id asc limit 20000"
         self.cursor.execute(sql)
         data = self.cursor.fetchall()
         self.db.commit()
@@ -58,45 +54,58 @@ class RestaurantSpider(scrapy.Spider):
         if data is not None:
             self.start_headers['accept'] = 'application/json, text/plain, */*'
             for vv in data:
-                self.start_headers['referer'] = 'https://www.ele.me/shop/%s' % vv
-                self.start_headers['x-shard'] = "shopid=%s;loc=121.523862,31.219215" % vv
+                self.start_headers['referer'] = 'https://www.ele.me/shop/%s/rate' % vv
+                self.start_headers['x-shard'] = "shopid=%s;loc=121.52669,31.2302" % vv
                 yield FormRequest(
-                    url= self.food_url % vv,
+                    url= self.food_comment_url % vv,
                     method= "GET",
                     meta={'cookiejar': response.meta['cookiejar'], 'restaurant_id': vv[0]},
                     headers=self.start_headers,
                     callback=self.export_data
                 )
+                return
+
+    def next_page(self, response, url, restaurant_id):
+        self.start_headers['referer'] = 'https://www.ele.me/shop/%s/rate' % restaurant_id
+        self.start_headers['x-shard'] = "shopid=%s;loc=121.52669,31.2302" % restaurant_id
+        FormRequest(
+            url=url,
+            method="GET",
+            meta={'cookiejar': response.meta['cookiejar'], 'restaurant_id': restaurant_id},
+            headers=self.start_headers,
+            callback=self.export_data
+        )
 
 
     def export_data(self, response):
+        print('make page_offset')
+        tem = response.url.split("=", 2)
+        tem1 = tem[2].split('&')[0]
+        page_offset = int(tem1) + 100
+
+
         try:
             data = json.loads(response.body)
-            if data is not None:
-                for food_list in data:
+            if data is not None and data != []:
+                for comment_list in data:
 
-                    for food in food_list['foods']:
-                        item = RestaurantItem()
+                    for comment in comment_list['item_rating_list']:
+                        item = FoodCommentItem()
                         item['restaurant_id'] = response.meta['restaurant_id']
-                        item['category_description'] = food_list['description']
-                        item['food_description'] = food['description']
-                        item['ele_food_id'] = food['specfoods'][0]['food_id']
-                        if 'false' == food['is_essential']: is_essential = 0
-                        else: is_essential = 1
-                        item['is_essential'] = is_essential
-                        item['is_featured'] = food['is_featured']
-                        item['min_purchase'] = food['min_purchase']
-                        item['month_sales'] = food['month_sales']
-                        item['name'] = food['name']
-                        item['rating'] = food['rating']
-                        item['rating_count'] = food['rating_count']
-                        item['satisfy_count'] = food['satisfy_count']
-                        item['satisfy_rate'] = food['satisfy_rate']
-                        item['category_name'] = food_list['name']
-                        item['packing_fee'] = food['specfoods'][0]['packing_fee']  # 餐盒费
-                        item['price'] = food['specfoods'][0]['price']
+                        item['ele_food_id'] = comment['food_id']
+                        item['rate_name'] = comment['rate_name']
+                        item['rating_star'] = comment['rating_star']
+                        item['rating_text'] = comment['rating_text']
+                        item['reply_at'] = comment['reply_at']
+                        item['reply_text'] = comment['reply_text']
+                        item['rated_at'] = comment_list['rated_at']
+                        item['time_spent_desc'] = comment_list['time_spent_desc']
+                        item['username'] = comment_list['username']
+
                         yield item
                         print("inserted one ++")
+
+                yield self.next_page(response, 'https://www.ele.me/restapi/ugc/v1/restaurant/%d/ratings?limit=100&offset=' + str(page_offset) + '&record_type=1', response.meta['restaurant_id'])
 
         except Exception as e:
             print(e)
