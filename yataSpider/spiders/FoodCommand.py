@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
-import scrapy, json, math, random, pymysql
+import scrapy, json, math, random, pymysql, uuid
 from scrapy.http import FormRequest, HtmlResponse
 from scrapy import Request
 from decimal import *
@@ -90,6 +90,7 @@ class FoodCommentSpider(scrapy.Spider):
             if data is not None and data != []:
                 print('goto for >>')
                 for comment_list in data:
+                    my_code = uuid.uuid1()
                     # print(comment_list)
                     if comment_list['item_rating_list'] is not None:
                         for comment in comment_list['item_rating_list']:
@@ -116,7 +117,7 @@ class FoodCommentSpider(scrapy.Spider):
                             item['rated_at'] = comment_list['rated_at']
                             item['time_spent_desc'] = comment_list['time_spent_desc']
                             item['username'] = comment_list['username']
-                            item['my_code'] = 
+                            item['my_code'] = my_code
                             yield item
                             print("inserted one ++")
 
