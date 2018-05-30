@@ -172,52 +172,31 @@ class FoodCommentItem(scrapy.Item):
     rate_name = scrapy.Field()
     rating_star = scrapy.Field()
     rating_text = scrapy.Field()
-
-
-
-
-    category_description = scrapy.Field()
-    food_description = scrapy.Field()
-    ele_food_id = scrapy.Field()
-    is_essential = scrapy.Field()
-    is_featured = scrapy.Field()
-    min_purchase = scrapy.Field()
-    month_sales = scrapy.Field()
-    name = scrapy.Field()
-    rating = scrapy.Field()
-    rating_count = scrapy.Field()
-    satisfy_count = scrapy.Field()
-    satisfy_rate = scrapy.Field()
-    category_name = scrapy.Field()
-    packing_fee = scrapy.Field()
-    price = scrapy.Field()
+    reply_at = scrapy.Field()
+    reply_text = scrapy.Field()
+    rated_at = scrapy.Field()
+    time_spent_desc = scrapy.Field()
+    username = scrapy.Field()
 
     def get_insert_sql(self):
         now_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         insert_sql = """
-                   insert into restaurant_foods(restaurant_id, 
-                   category_description, 
-                   food_description, 
-                   ele_food_id,
-                   is_essential,
-                   is_featured,
-                   min_purchase,
-                   month_sales,
-                   name,
-                   rating,
-                   rating_count,
-                   satisfy_count,
-                   satisfy_rate,
-                   category_name,
-                   packing_fee,
-                   price,
+                   insert into foods_comment(restaurant_id, 
+                   ele_food_id, 
+                   rate_name, 
+                   rating_star,
+                   rating_text,
+                   reply_at,
+                   reply_text,
+                   rated_at,
+                   time_spent_desc,
+                   username
                    created_at, updated_at)
-                    VALUES (%d, '%s', '%s', %d, %d, %d, %d, %d, '%s', %f, %d, %d, %d, '%s', %f, %f, '%s', '%s');
+                    VALUES (%d, %d, '%s', %d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');
                """
         params = (
-        self["restaurant_id"], self["category_description"], self["food_description"], self["ele_food_id"], self["is_essential"], self["is_featured"],
-            self["min_purchase"], self["month_sales"], self["name"], self["rating"], self["rating_count"], self["satisfy_count"], self["satisfy_rate"],
-            self["category_name"], self["packing_fee"], self['price'], now_time, now_time
+        self["restaurant_id"], self["ele_food_id"], self["rate_name"], self["rating_star"], self["rating_text"], self["reply_at"],
+            self["reply_text"], self["rated_at"], self["time_spent_desc"], self["username"], now_time, now_time
         )
         print("target insert one row data" + '**' * 6)
         return insert_sql, params

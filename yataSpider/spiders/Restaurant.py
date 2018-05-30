@@ -33,7 +33,8 @@ class RestaurantSpider(scrapy.Spider):
     # 'x-shard': 'shopid=156427001;loc=121.52669,31.2302'
 
     def __init__(self):
-        self.db = pymysql.connect(host="140.143.32.44", user="root", password="yata123", db="yata_data_01", port=3306, charset="utf8")
+        # 140.143.32.44
+        self.db = pymysql.connect(host="localhost", user="root", password="", db="yata_data_01", port=3306, charset="utf8")
         self.cursor = self.db.cursor()
 
 
