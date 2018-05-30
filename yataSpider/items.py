@@ -164,7 +164,6 @@ class RestaurantItem(scrapy.Item):
         return insert_sql, params
 
 
-
 class FoodCommentItem(scrapy.Item):
 
     restaurant_id = scrapy.Field()
@@ -177,9 +176,11 @@ class FoodCommentItem(scrapy.Item):
     rated_at = scrapy.Field()
     time_spent_desc = scrapy.Field()
     username = scrapy.Field()
+    my_code = scrapy.Field()
 
     def get_insert_sql(self):
         now_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        print(now_time)
         insert_sql = """
                    insert into foods_comment(restaurant_id, 
                    ele_food_id, 
@@ -190,13 +191,15 @@ class FoodCommentItem(scrapy.Item):
                    reply_text,
                    rated_at,
                    time_spent_desc,
-                   username
-                   created_at, updated_at)
-                    VALUES (%d, %d, '%s', %d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');
-               """
+                   username,
+                   my_code,
+                   created_at,
+                   updated_at) 
+                   VALUES (%d, %d, '%s', %d, '%s', '%s', '%s', '%s', '%s', "%s", '%s', '%s', '%s');"""
         params = (
         self["restaurant_id"], self["ele_food_id"], self["rate_name"], self["rating_star"], self["rating_text"], self["reply_at"],
-            self["reply_text"], self["rated_at"], self["time_spent_desc"], self["username"], now_time, now_time
+            self["reply_text"], self["rated_at"], self["time_spent_desc"], self["username"], self["my_code"], now_time, now_time
         )
         print("target insert one row data" + '**' * 6)
+        # print(insert_sql % params)
         return insert_sql, params

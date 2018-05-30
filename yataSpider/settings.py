@@ -38,7 +38,7 @@ COOKIES_ENABLED = True
 
 LOG_LEVEL = 'ERROR'
 
-LOG_STDOUT = True
+LOG_STDOUT = False
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False

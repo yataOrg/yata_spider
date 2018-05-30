@@ -12,7 +12,7 @@ class FoodCommentSpider(scrapy.Spider):
     name = 'FoodComment'
     allowed_domains = ['ele.me']
 
-    food_comment_url = 'https://www.ele.me/restapi/ugc/v1/restaurant/%d/ratings?limit=100&offset=0&record_type=1'
+    food_comment_url = 'https://www.ele.me/restapi/ugc/v1/restaurant/%d/ratings?limit=30&offset=0&record_type=1'
     db = None
     cursor = None
     start_headers = {
@@ -46,7 +46,7 @@ class FoodCommentSpider(scrapy.Spider):
 
     def get_food_comment(self, response):
         print("start spider!")
-        sql = "select distinct ele_id from elm_new order by ele_id asc limit 20000"
+        sql = "select distinct ele_id from elm_new order by ele_id asc limit 1"
         self.cursor.execute(sql)
         data = self.cursor.fetchall()
         self.db.commit()
@@ -63,49 +63,71 @@ class FoodCommentSpider(scrapy.Spider):
                     headers=self.start_headers,
                     callback=self.export_data
                 )
-                return
 
     def next_page(self, response, url, restaurant_id):
         self.start_headers['referer'] = 'https://www.ele.me/shop/%s/rate' % restaurant_id
         self.start_headers['x-shard'] = "shopid=%s;loc=121.52669,31.2302" % restaurant_id
-        FormRequest(
-            url=url,
+        print("<<<<<<<<<<<go go go " + (url % restaurant_id))
+        return FormRequest(
+            url=url % restaurant_id,
             method="GET",
             meta={'cookiejar': response.meta['cookiejar'], 'restaurant_id': restaurant_id},
             headers=self.start_headers,
             callback=self.export_data
         )
 
-
     def export_data(self, response):
         print('make page_offset')
         tem = response.url.split("=", 2)
         tem1 = tem[2].split('&')[0]
-        page_offset = int(tem1) + 100
-
+        page_offset = int(tem1) + 30
 
         try:
             data = json.loads(response.body)
+            print("~~~~~~~~~~~~~~~~~~~~~~~~"*5)
+            print(len(data))
+            # print(data)
             if data is not None and data != []:
+                print('goto for >>')
                 for comment_list in data:
+                    # print(comment_list)
+                    if comment_list['item_rating_list'] is not None:
+                        for comment in comment_list['item_rating_list']:
+                            print('sssss2')
+                            item = FoodCommentItem()
+                            item['restaurant_id'] = response.meta['restaurant_id']
+                            item['ele_food_id'] = comment['food_id']
+                            item['rate_name'] = comment['rate_name']
+                            item['rating_star'] = comment['rating_star']
+                            item['rating_text'] = comment['rating_text']
+                            if not hasattr(comment, 'reply_at'):
+                                comment['reply_at'] = ''
 
-                    for comment in comment_list['item_rating_list']:
-                        item = FoodCommentItem()
-                        item['restaurant_id'] = response.meta['restaurant_id']
-                        item['ele_food_id'] = comment['food_id']
-                        item['rate_name'] = comment['rate_name']
-                        item['rating_star'] = comment['rating_star']
-                        item['rating_text'] = comment['rating_text']
-                        item['reply_at'] = comment['reply_at']
-                        item['reply_text'] = comment['reply_text']
-                        item['rated_at'] = comment_list['rated_at']
-                        item['time_spent_desc'] = comment_list['time_spent_desc']
-                        item['username'] = comment_list['username']
+                            if not hasattr(comment, 'reply_text'):
+                                comment['reply_text'] = ''
 
-                        yield item
-                        print("inserted one ++")
+                            if not hasattr(comment, 'reply_at') or '' == comment['reply_at']:
+                                comment['reply_at'] = '0000-00-00'
 
-                yield self.next_page(response, 'https://www.ele.me/restapi/ugc/v1/restaurant/%d/ratings?limit=100&offset=' + str(page_offset) + '&record_type=1', response.meta['restaurant_id'])
+                            item['reply_at'] = comment['reply_at']
+                            item['reply_text'] = comment['reply_text']
+                            if not hasattr(comment_list, 'rated_at') or '' == comment_list['rated_at']:
+                                comment_list['rated_at'] = '0000-00-00'
+                            item['rated_at'] = comment_list['rated_at']
+                            item['time_spent_desc'] = comment_list['time_spent_desc']
+                            item['username'] = comment_list['username']
+                            item['my_code'] = 
+                            yield item
+                            print("inserted one ++")
+
+                    else:
+                        print('comment_list item_rating_list is None')
+
+                # print("<<<<<<<<<<<<<<goto " + 'https://www.ele.me/restapi/ugc/v1/restaurant/%d/ratings?limit=100&offset=' + str(page_offset) + '&record_type=1')
+                yield self.next_page(response, 'https://www.ele.me/restapi/ugc/v1/restaurant/%d/ratings?limit=30&offset=' + str(page_offset) + '&record_type=1', response.meta['restaurant_id'])
+            else:
+                print('this comments is None')
 
         except Exception as e:
             print(e)
+            print('!!!!!!!!' * 20)

@@ -30,8 +30,10 @@ class YataspiderPipeline(object):
 
 
     def handle_error(self, failure, item, spider):
+        print('this has errors')
+        insert_sql, params = item.get_insert_sql()
+        print(insert_sql % params)
         print(failure)
-
 
     def do_insert(self, cursor, item):
         insert_sql, params = item.get_insert_sql()
