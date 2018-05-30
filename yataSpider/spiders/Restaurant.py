@@ -34,7 +34,7 @@ class RestaurantSpider(scrapy.Spider):
 
     def __init__(self):
         # 140.143.32.44
-        self.db = pymysql.connect(host="localhost", user="root", password="", db="yata_data_01", port=3306, charset="utf8")
+        self.db = pymysql.connect(host="140.143.32.44", user="root", password="yata123", db="yata_data_01", port=3306, charset="utf8")
         self.cursor = self.db.cursor()
 
 
@@ -51,7 +51,7 @@ class RestaurantSpider(scrapy.Spider):
 
     def get_restaurants(self, response):
         print("start spider!")
-        sql = "select distinct ele_id from elm_new order by ele_id asc limit 10000"
+        sql = "select distinct ele_id from elm_new order by ele_id asc limit 20000"
         self.cursor.execute(sql)
         data = self.cursor.fetchall()
         self.db.commit()
