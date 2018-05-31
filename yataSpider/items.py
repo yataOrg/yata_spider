@@ -153,7 +153,7 @@ class RestaurantItem(scrapy.Item):
                    packing_fee,
                    price,
                    created_at, updated_at)
-                    VALUES (%d, '%s', '%s', %d, %d, %d, %d, %d, '%s', %f, %d, %d, %d, '%s', %f, %f, '%s', '%s');
+                    VALUES (%d, '%s', '%s', %d, %d, %d, %d, %d, "%s", %f, %d, %d, %d, '%s', %f, %f, '%s', '%s');
                """
         params = (
         self["restaurant_id"], self["category_description"], self["food_description"], self["ele_food_id"], self["is_essential"], self["is_featured"],

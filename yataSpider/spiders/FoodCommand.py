@@ -34,7 +34,7 @@ class FoodCommentSpider(scrapy.Spider):
     # 'x-shard': 'shopid=156427001;loc=121.52669,31.2302'
 
     def __init__(self):
-        self.db = pymysql.connect(host="140.143.32.44", user="root", password="yata123", db="yata_data_01", port=3306, charset="utf8")
+        self.db = pymysql.connect(host="localhost", user="root", password="", db="yata_data_01", port=3306, charset="utf8")
         self.cursor = self.db.cursor()
 
 
@@ -46,7 +46,7 @@ class FoodCommentSpider(scrapy.Spider):
 
     def get_food_comment(self, response):
         print("start spider!")
-        sql = "select distinct ele_id from elm_new order by ele_id asc limit 1"
+        sql = "select distinct ele_id from elm_new order by ele_id asc"
         self.cursor.execute(sql)
         data = self.cursor.fetchall()
         self.db.commit()
