@@ -36,7 +36,7 @@ DOWNLOAD_DELAY = 0.94
 # Disable cookies (enabled by default)
 COOKIES_ENABLED = True
 
-LOG_LEVEL = 'ERROR'
+LOG_LEVEL = 'INFO'
 
 LOG_STDOUT = True
 
