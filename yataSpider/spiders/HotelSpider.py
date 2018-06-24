@@ -129,3 +129,4 @@ class HotelSpider(scrapy.Spider):
 
     def get_list(self, response):
         print(response.body)
+        # 卡住了 无法走到这里 无法进行下一步

@@ -10,6 +10,7 @@ chrome_options = webdriver.chrome.options.Options()
 # chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
 
+# 开启主动调用浏览器 方便测试
 # driver = webdriver.PhantomJS()
 driver = webdriver.Chrome(chrome_options = chrome_options)
 csv_file = open("hotellist.csv", "w", newline='')
@@ -33,7 +34,7 @@ print(len(data))
 
 csv_file.close()
 
-
+### 卡住了 每次打开浏览器都要重新登录
 
 
 
