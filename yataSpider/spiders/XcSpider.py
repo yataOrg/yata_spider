@@ -11,7 +11,7 @@ from yataSpider.items import YataspiderItem
 class XcSpider(scrapy.Spider):
 
     name = "XcSpider"
-    allowed_domains = ["m.ctrip.com"]
+    allowed_domains = ["m.ctrip.com", "hotels.ctrip.com"]
     search_url = 'http://m.ctrip.com/restapi/h5api/searchapp/search?'
     search_dict = {
         'action': 'autocomplete',
@@ -58,4 +58,4 @@ class XcSpider(scrapy.Spider):
 
     def get_data(self, response):
         print('ssssssssssssssssssssssssssssssssssssssssssssssssssssssss'*10)
-        print(response.data)
+        print(response.body)
